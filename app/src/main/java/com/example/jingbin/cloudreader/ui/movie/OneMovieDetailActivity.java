@@ -27,6 +27,7 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
 /**
+ * 最新的电影详情页：
  * 继承基类而写的电影详情页 2016-12-13
  */
 public class OneMovieDetailActivity extends BaseHeaderActivity<HeaderSlideShapeBinding, ActivityOneMovieDetailBinding> {
@@ -47,7 +48,7 @@ public class OneMovieDetailActivity extends BaseHeaderActivity<HeaderSlideShapeB
 
         setTitle(subjectsBean.getTitle());
         setSubTitle(String.format("主演：%s", StringFormatUtil.formatName(subjectsBean.getCasts())));
-//        ImgLoadUtil.showImg(bindingHeaderView.ivOnePhoto,subjectsBean.getImages().getLarge());
+//        ImageLoadUtil.showImg(bindingHeaderView.ivOnePhoto,subjectsBean.getImages().getLarge());
         bindingHeaderView.setSubjectsBean(subjectsBean);
         bindingHeaderView.executePendingBindings();
 

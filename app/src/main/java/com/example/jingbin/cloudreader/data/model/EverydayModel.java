@@ -25,7 +25,6 @@ import rx.schedulers.Schedulers;
  * Created by jingbin on 2016/12/1.
  * 每日推荐model
  */
-
 public class EverydayModel {
 
     private String year = "2016";
@@ -44,7 +43,7 @@ public class EverydayModel {
     /**
      * 轮播图
      */
-    public void showBanncerPage(final RequestImpl listener) {
+    public void showBannerPage(final RequestImpl listener) {
         Subscription subscription = HttpClient.Builder.getTingServer().getFrontpage()
                 .observeOn(AndroidSchedulers.mainThread()).subscribeOn(Schedulers.io())
                 .subscribe(new Observer<FrontpageBean>() {
@@ -54,15 +53,21 @@ public class EverydayModel {
 
                     @Override
                     public void onError(Throwable e) {
-                        listener.loadFailed();
+                        if (listener != null) {
+                            listener.loadFailed();
+                        }
                     }
 
                     @Override
                     public void onNext(FrontpageBean frontpageBean) {
-                        listener.loadSuccess(frontpageBean);
+                        if (listener != null) {
+                            listener.loadSuccess(frontpageBean);
+                        }
                     }
                 });
-        listener.addSubscription(subscription);
+        if (listener != null) {
+            listener.addSubscription(subscription);
+        }
     }
 
     /**
@@ -227,10 +232,10 @@ public class EverydayModel {
             urlLength = ConstantsImageUrl.HOME_SIX_URLS.length;
         }
 
-        String home_six = SPUtils.getString(saveWhere, "");
-        if (!TextUtils.isEmpty(home_six)) {
+        String homeSix = SPUtils.getString(saveWhere, "");
+        if (!TextUtils.isEmpty(homeSix)) {
             // 已取到的值
-            String[] split = home_six.split(",");
+            String[] split = homeSix.split(",");
 
             Random random = new Random();
             for (int j = 0; j < urlLength; j++) {
@@ -244,7 +249,7 @@ public class EverydayModel {
                     }
                 }
                 if (!isUse) {
-                    StringBuilder sb = new StringBuilder(home_six);
+                    StringBuilder sb = new StringBuilder(homeSix);
                     sb.insert(0, randomInt + ",");
                     SPUtils.putString(saveWhere, sb.toString());
                     return randomInt;

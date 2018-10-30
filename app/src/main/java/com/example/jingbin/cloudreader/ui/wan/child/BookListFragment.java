@@ -4,11 +4,11 @@ import android.content.Context;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.view.inputmethod.EditorInfo;
 
-import com.example.jingbin.cloudreader.MainActivity;
 import com.example.jingbin.cloudreader.R;
 import com.example.jingbin.cloudreader.adapter.WanBookAdapter;
 import com.example.jingbin.cloudreader.base.BaseFragment;
@@ -39,8 +39,8 @@ public class BookListFragment extends BaseFragment<FragmentWanAndroidBinding> {
     private int mStart = 0;
     // 一次请求的数量
     private int mCount = 18;
-    private MainActivity activity;
     private WanBookAdapter mBookAdapter;
+    private FragmentActivity activity;
 
     @Override
     public int setContent() {
@@ -50,7 +50,7 @@ public class BookListFragment extends BaseFragment<FragmentWanAndroidBinding> {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        activity = (MainActivity) context;
+        activity = getActivity();
     }
 
     public static BookListFragment newInstance(String param1) {
@@ -101,12 +101,13 @@ public class BookListFragment extends BaseFragment<FragmentWanAndroidBinding> {
         bindingView.xrvBook.setLayoutManager(mLayoutManager);
         bindingView.xrvBook.setPullRefreshEnabled(false);
         bindingView.xrvBook.clearHeader();
-        mBookAdapter = new WanBookAdapter(getActivity());
+        mBookAdapter = new WanBookAdapter();
         bindingView.xrvBook.setAdapter(mBookAdapter);
         HeaderItemBookBinding oneBinding = DataBindingUtil.inflate(getLayoutInflater(), R.layout.header_item_book, null, false);
         oneBinding.etTypeName.setText(mType);
         oneBinding.etTypeName.setSelection(mType.length());
         bindingView.xrvBook.addHeaderView(oneBinding.getRoot());
+        mBookAdapter.setOnClickListener((bean, view) -> BookDetailActivity.start(activity, bean, view));
         /** 处理键盘搜索键 */
         oneBinding.etTypeName.setOnEditorActionListener((textView, actionId, keyEvent) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
@@ -179,18 +180,21 @@ public class BookListFragment extends BaseFragment<FragmentWanAndroidBinding> {
                     public void onNext(BookBean bookBean) {
                         if (mStart == 0) {
                             if (bookBean != null && bookBean.getBooks() != null && bookBean.getBooks().size() > 0) {
-
                                 mBookAdapter.clear();
-                                mBookAdapter.addAll(bookBean.getBooks());
-                                mBookAdapter.notifyDataSetChanged();
-                                bindingView.xrvBook.refreshComplete();
+                            } else {
+                                showError();
+                                return;
                             }
                             mIsFirst = false;
                         } else {
-                            mBookAdapter.addAll(bookBean.getBooks());
-                            mBookAdapter.notifyDataSetChanged();
-                            bindingView.xrvBook.refreshComplete();
+                            if (bookBean == null || bookBean.getBooks() == null || bookBean.getBooks().size() == 0) {
+                                bindingView.xrvBook.noMoreLoading();
+                                return;
+                            }
                         }
+                        mBookAdapter.addAll(bookBean.getBooks());
+                        mBookAdapter.notifyDataSetChanged();
+                        bindingView.xrvBook.refreshComplete();
                     }
                 });
         addSubscription(get);

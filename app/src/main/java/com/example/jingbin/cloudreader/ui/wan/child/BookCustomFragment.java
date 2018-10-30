@@ -23,6 +23,9 @@ import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
+/**
+ * 已废弃，使用{@link BookListFragment}，替代
+ */
 public class BookCustomFragment extends BaseFragment<FragmentBookCustomBinding> {
 
     private static final String TYPE = "param1";
@@ -157,10 +160,10 @@ public class BookCustomFragment extends BaseFragment<FragmentBookCustomBinding> 
 
                                 if (mBookAdapter == null) {
                                     mBookAdapter = new BookAdapter(getActivity());
+                                    bindingView.xrvBook.setAdapter(mBookAdapter);
                                 }
                                 mBookAdapter.setList(bookBean.getBooks());
                                 mBookAdapter.notifyDataSetChanged();
-                                bindingView.xrvBook.setAdapter(mBookAdapter);
 
 
 //                                //构造器中，第一个参数表示列数或者行数，第二个参数表示滑动方向,瀑布流

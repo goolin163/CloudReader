@@ -64,6 +64,8 @@ public abstract class BaseHeaderActivity<HV extends ViewDataBinding, SV extends 
     private int slidingDistance;
     // 这个是高斯图背景的高度
     private int imageBgHeight;
+    // 清除动画，防止内存泄漏
+    private CustomChangeBounds changeBounds;
     private AnimationDrawable mAnimationDrawable;
     private CompositeSubscription mCompositeSubscription;
 
@@ -113,10 +115,10 @@ public abstract class BaseHeaderActivity<HV extends ViewDataBinding, SV extends 
         refreshView.setVisibility(View.GONE);
 
         // 设置自定义元素共享切换动画
-        setMotion(setHeaderPicView(), false);
+//        setMotion(setHeaderPicView(), false);
 
         // 初始化滑动渐变
-        initSlideShapeTheme(setHeaderImgUrl(), setHeaderImageView());
+//        initSlideShapeTheme(setHeaderImgUrl(), setHeaderImageView());
 
         // 设置toolbar
         setToolBar();
@@ -197,19 +199,20 @@ public abstract class BaseHeaderActivity<HV extends ViewDataBinding, SV extends 
             return;
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            //定义ArcMotion
+            // 定义ArcMotion
             ArcMotion arcMotion = new ArcMotion();
-            arcMotion.setMinimumHorizontalAngle(50f);
-            arcMotion.setMinimumVerticalAngle(50f);
+            // 设置曲线幅度
+            arcMotion.setMinimumHorizontalAngle(10f);
+            arcMotion.setMinimumVerticalAngle(10f);
             //插值器，控制速度
             Interpolator interpolator = AnimationUtils.loadInterpolator(this, android.R.interpolator.fast_out_slow_in);
 
-            //实例化自定义的ChangeBounds
-            CustomChangeBounds changeBounds = new CustomChangeBounds();
+            // 实例化自定义的ChangeBounds
+            changeBounds = new CustomChangeBounds();
             changeBounds.setPathMotion(arcMotion);
             changeBounds.setInterpolator(interpolator);
             changeBounds.addTarget(imageView);
-            //将切换动画应用到当前的Activity的进入和返回
+            // 将切换动画应用到当前的Activity的进入和返回
             getWindow().setSharedElementEnterTransition(changeBounds);
             getWindow().setSharedElementReturnTransition(changeBounds);
         }
@@ -231,7 +234,13 @@ public abstract class BaseHeaderActivity<HV extends ViewDataBinding, SV extends 
 //        bindingTitleView.tbBaseTitle.setTitleTextAppearance(this, R.style.ToolBar_Title);
 //        bindingTitleView.tbBaseTitle.setSubtitleTextAppearance(this, R.style.Toolbar_SubTitle);
         bindingTitleView.tbBaseTitle.setOverflowIcon(ContextCompat.getDrawable(this, R.drawable.actionbar_more));
-        bindingTitleView.tbBaseTitle.setNavigationOnClickListener(v -> onBackPressed());
+        bindingTitleView.tbBaseTitle.setNavigationOnClickListener(v -> {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                finishAfterTransition();
+            } else {
+                finish();
+            }
+        });
         bindingTitleView.tbBaseTitle.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
                 case R.id.actionbar_more:// 更多信息
@@ -440,10 +449,22 @@ public abstract class BaseHeaderActivity<HV extends ViewDataBinding, SV extends 
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
         if (this.mCompositeSubscription != null && mCompositeSubscription.hasSubscriptions()) {
             this.mCompositeSubscription.unsubscribe();
         }
+        if (changeBounds != null) {
+            changeBounds.addListener(null);
+            changeBounds.removeTarget(setHeaderPicView());
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                getWindow().setSharedElementEnterTransition(null);
+                getWindow().setSharedElementReturnTransition(null);
+            }
+        }
+        if (mAnimationDrawable != null) {
+            mAnimationDrawable.stop();
+            mAnimationDrawable = null;
+        }
+        super.onDestroy();
     }
 
     public void removeSubscription() {

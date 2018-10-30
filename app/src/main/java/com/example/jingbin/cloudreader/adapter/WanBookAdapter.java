@@ -1,16 +1,16 @@
 package com.example.jingbin.cloudreader.adapter;
 
-import android.app.Activity;
 import android.support.annotation.NonNull;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import com.example.jingbin.cloudreader.R;
 import com.example.jingbin.cloudreader.base.baseadapter.BaseRecyclerViewAdapter;
 import com.example.jingbin.cloudreader.base.baseadapter.BaseRecyclerViewHolder;
 import com.example.jingbin.cloudreader.bean.book.BooksBean;
 import com.example.jingbin.cloudreader.databinding.ItemBookBinding;
-import com.example.jingbin.cloudreader.ui.wan.child.BookDetailActivity;
+import com.example.jingbin.cloudreader.utils.DensityUtil;
 import com.example.jingbin.cloudreader.utils.PerfectClickListener;
 
 /**
@@ -19,10 +19,11 @@ import com.example.jingbin.cloudreader.utils.PerfectClickListener;
 
 public class WanBookAdapter extends BaseRecyclerViewAdapter<BooksBean> {
 
-    private Activity activity;
+    private int width;
 
-    public WanBookAdapter(Activity activity) {
-        this.activity = activity;
+    public WanBookAdapter() {
+        int px = DensityUtil.dip2px(48);
+        width = (DensityUtil.getDisplayWidth() - px) / 3;
     }
 
     @NonNull
@@ -41,14 +42,26 @@ public class WanBookAdapter extends BaseRecyclerViewAdapter<BooksBean> {
         public void onBindViewHolder(final BooksBean book, final int position) {
             if (book != null) {
                 binding.setBean(book);
-
+                DensityUtil.formatHeight(binding.ivTopPhoto, width, 0.703f, 1);
                 binding.llItemTop.setOnClickListener(new PerfectClickListener() {
                     @Override
                     protected void onNoDoubleClick(View v) {
-                        BookDetailActivity.start(activity,book,binding.ivTopPhoto);
+                        if (listener != null) {
+                            listener.onClick(book, binding.ivTopPhoto);
+                        }
                     }
                 });
             }
         }
+    }
+
+    private OnClickInterface listener;
+
+    public interface OnClickInterface {
+        void onClick(BooksBean bean, ImageView view);
+    }
+
+    public void setOnClickListener(OnClickInterface listener) {
+        this.listener = listener;
     }
 }
